@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t naguthota/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true naguthota/react-test npm test
+
+after_success:
+    - docker build -t naguthota/multi-client ./client
+    - docker build -t naguthota/multi-nginx ./nginx
+    - docker build -t naguthota/multi-server ./server
+    - docker build -t naguthota/multi-worker ./worker
+    # Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push naguthota/multi-client
+    - docker push naguthota/multi-nginx
+    - docker push naguthota/multi-server
+    - docker push naguthota/multi-worker
